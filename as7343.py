@@ -1,62 +1,57 @@
 from machine import I2C
 import time
 
-AS7343_ADDR = 0x39
+ADDR = 0x39
 
-# Register definitions
+# Registers
 ENABLE = 0x80
 ATIME = 0x81
 ASTEP_L = 0xCA
 ASTEP_H = 0xCB
-CFG0 = 0xA9
 CONTROL = 0xAF
 STATUS = 0xA3
-CH_DATA_START = 0x95
+CH_DATA = 0x95   # Start of data registers
 
 class AS7343:
-    def __init__(self, i2c, address=AS7343_ADDR):
+    def __init__(self, i2c):
         self.i2c = i2c
-        self.address = address
-        # Power ON
+        # Power on
         self._write(ENABLE, 0x01)
         time.sleep(0.01)
-        # PON + Spectral Measurement Enable
+        # Enable spectral measurement engine
         self._write(ENABLE, 0x05)
-        # Default config
-        self._configure()
 
-    def _write(self, reg, val):
-        self.i2c.writeto_mem(self.address, reg, bytes([val]))
-
-    def _read(self, reg, n):
-        return self.i2c.readfrom_mem(self.address, reg, n)
-
-    def _read_word(self, reg):
-        data = self._read(reg, 2)
-        return data[1] << 8 | data[0]
-
-    def _configure(self):
-        # Integration time = (ATIME+1)*(ASTEP+1)*2.78us
+        # Integration settings
         self._write(ATIME, 100)
         self._write(ASTEP_L, 0xFF)
         self._write(ASTEP_H, 0x03)
-        # Set measurement mode (F1–F4 mapping first)
-        self._write(CFG0, 0x10)
-        # Start measurement
-        self._write(CONTROL, 0x01)
 
-    def ready(self):
-        status = self._read(STATUS, 1)[0]
-        return bool(status & 0x08)
+        print("AS7343 initialized.")
+
+    def _write(self, reg, val):
+        self.i2c.writeto_mem(ADDR, reg, bytes([val]))
+
+    def _read(self, reg, length):
+        return self.i2c.readfrom_mem(ADDR, reg, length)
 
     def read_channels(self):
-        # Wait until data is ready
-        while not self.ready():
-            time.sleep(0.005)
+        # Trigger measurement
+        self._write(CONTROL, 0x01)
 
-        # AS7343 returns 12 channels (F1–F12)
+        # Wait for STATUS ready with timeout
+        timeout = time.ticks_ms() + 200
+        while time.ticks_ms() < timeout:
+            status = self._read(STATUS, 1)[0]
+            if status & 0x08:
+                break
+
+        # Read all 12 channels (24 bytes)
+        raw = self._read(CH_DATA, 24)
         channels = []
-        for reg in range(CH_DATA_START, CH_DATA_START + 24, 2):
-            channels.append(self._read_word(reg))
+
+        for i in range(0, 24, 2):
+            low = raw[i]
+            high = raw[i + 1]
+            channels.append(high << 8 | low)
 
         return channels
