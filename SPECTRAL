@@ -1,0 +1,18 @@
+import board
+import adafruit_as7341
+import time
+
+i2c = board.I2C()  # Uses the Blinka layer to talk to the Pico's I2C pins
+sensor = adafruit_as7341.AS7341(i2c)
+
+print("AS7341 Spectral Sensor Test")
+
+while True:
+    print("F1(415nm)={0} F2(446nm)={1} F3(490nm)={2} F4(555nm)={3}".format(
+        sensor.channel_415nm, sensor.channel_446nm,
+        sensor.channel_490nm, sensor.channel_555nm))
+    print("F5(590nm)={0} F6(630nm)={1} F7(680nm)={2} F8(clear)={3}".format(
+        sensor.channel_590nm, sensor.channel_630nm,
+        sensor.channel_680nm, sensor.channel_clear))
+    print("")
+    time.sleep(1.0)
