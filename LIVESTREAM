@@ -1,1 +1,4 @@
 ffmpeg -f v4l2 -input_format mjpeg -video_size 1280x720 -i /dev/video0 \ -f mjpeg -q:v 5 -update 1 -listen 1 http://0.0.0.0:8081
+ffmpeg -f v4l2 -input_format mjpeg -video_size 1280x720 -i /dev/video0 \
+       -f mpjpeg -q:v 5 -listen 1 http://0.0.0.0:8081
+
