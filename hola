@@ -1,0 +1,12 @@
+from machine import I2C, Pin
+
+i2c = I2C(1, scl=Pin(15), sda=Pin(14), freq=100000)
+
+def r(reg):
+    return i2c.readfrom_mem(0x39, reg, 1)[0]
+
+print("Trying ID register (0x92)...")
+try:
+    print(hex(r(0x92)))
+except Exception as e:
+    print("ERROR:", e)
