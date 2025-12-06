@@ -1,16 +1,8 @@
-from machine import I2C, Pin
+from machine import Pin
 import time
 
-# I2C1 on GP18 (SDA) and GP19 (SCL)
-i2c = I2C(1, scl=Pin(19), sda=Pin(18), freq=400000)
+led = Pin(25, Pin.OUT)   # On-board LED on GPIO25
 
-print("Scanning...")
-time.sleep(1)
-
-devices = i2c.scan()
-print("Found:", devices)
-
-if 0x39 in devices:
-    print("AS7341 detected!")
-else:
-    print("Sensor not found.")
+while True:
+    led.toggle()
+    time.sleep(0.5)
