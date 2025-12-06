@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Live Camera Stream</title>
+<meta charset="UTF-8">
+<style>
+body { margin:0; background:black; display:flex; justify-content:center; align-items:center; height:100vh; }
+img { width:100%; height:auto; }
+</style>
+</head>
+<body>
+<img id="cam" src="stream.jpg">
+<script>
+setInterval(function() {
+    document.getElementById('cam').src = "stream.jpg?ts=" + new Date().getTime();
+}, 100);  // refresh every 100ms (~10 fps)
+</script>
+</body>
+</html>
